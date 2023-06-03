@@ -1,3 +1,9 @@
+# Visual Studio
+
+MSFSConnect/.vs
+MSFSConnect/out
+
+
 # Prerequisites
 *.d
 
