@@ -2,12 +2,13 @@
 #include <iostream>
 #include "Controller.h"
 
-bool quit = false;
 
 Controller::Controller()
 {
 	MSFSConnection sim_connect = MSFSConnection();
 	PicoConnection pic_connect = PicoConnection();
+
+	m_stop = false;
 }
 
 
@@ -23,12 +24,35 @@ void Controller::init()
 
 void Controller::run()
 {
-
-	while ( quit != true )
+	while (m_stop != true )
 	{
-		sim_connect.run();
-		pic_connect.run();
+		sim_connect.tick();
+		pic_connect.tick();
 		Sleep(100);
+
+		check_health();
+	}
+
+	stop_sim();
+}
+
+void Controller::check_health()
+{
+	if (sim_connect.get_state() == ON && pic_connect.get_state() == ON)
+	{
+		// all good
+		return void();
+	}
+	else
+	{
+		// Stop simulation
+		m_stop = true;
+		return void();
 	}
 }
 
+void Controller::stop_sim()
+{
+	sim_connect.stop();
+	pic_connect.stop();
+}

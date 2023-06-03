@@ -22,6 +22,11 @@ private:
 	MSFSConnection sim_connect;
 	PicoConnection pic_connect;
 
+	void check_health(void);
+	void stop_sim(void);
+
+	bool m_stop;
+
 };
 
 //

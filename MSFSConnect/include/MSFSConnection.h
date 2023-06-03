@@ -6,6 +6,7 @@
 #include "windows.h"
 #include <string>
 #include "SimConnect.h"
+#include "common.h"
 
 class MSFSConnection
 {
@@ -13,14 +14,21 @@ public:
 	MSFSConnection();
 
 	void init_connection(void);
-	void run(void);
+	void tick(void);
+	void stop(void);
+	health get_state(void);
+
+	void pass_action(void);
+	void pass_data(void);
+	
+	HANDLE m_sim;
 
 private:
-	double request_double(std::string requested_data);
-	int request_int(std::string requested_data);
-	bool request_bool(std::string requested_data);
+	void init_data(void);
+	void read_data(void);
+	void send_data(void);
 
-	static HANDLE m_sim;
+	health m_state;
 
 };
 
