@@ -1,7 +1,8 @@
-// MSFSConnect.h : Include file for standard system include files,
+// PicoConnection.h : Include file for standard system include files,
 // or project specific include files.
 
-#pragma once
+#ifndef PICO_CONNECT_H
+#define PICO_CONNECT_H
 
 #include "common.h"
 
@@ -27,3 +28,5 @@ private:
 };
 
 // TODO: Reference additional headers your program requires here.
+
+#endif /* !PICO_CONNECT_H */

@@ -12,7 +12,7 @@ endif()
 project ("MSFSConnect")
 
 # Add source files and include dir
-file( GLOB SRC_FILES MSFSConnect.cpp ${PROJECT_SOURCE_DIR}/src/*.cpp )
+file( GLOB SRC_FILES ${PROJECT_SOURCE_DIR}/src/*.cpp )
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Add MSFS SDK
@@ -24,6 +24,12 @@ add_executable (MSFSConnect ${SRC_FILES})
 
 # Link
 target_link_libraries( MSFSConnect "SimConnect")
+
+# Copy DLL
+add_custom_command(TARGET MyTest MSFSConnect                # Adds a post-build event to MyTest
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different           # which executes "cmake - E copy_if_different..."
+        "C:/MSFS SDK/SimConnect SDK/lib/SimConnect.dll"     # <--this is in-file
+        $<TARGET_FILE_DIR:MSFSConnect>)                     # <--this is out-file path
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET MSFSConnect PROPERTY CXX_STANDARD 20)

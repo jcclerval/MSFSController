@@ -1,8 +1,8 @@
 //
 
 #include "MSFSConnection.h"
-#include "data.h"
 #include <iostream>
+
 
 void CALLBACK MyDispatchProc1(SIMCONNECT_RECV* pData, DWORD cbData, void* pContext) {
 	switch (pData->dwID)
@@ -27,6 +27,10 @@ void CALLBACK MyDispatchProc1(SIMCONNECT_RECV* pData, DWORD cbData, void* pConte
 
 				<< std::flush;
 
+			// Copy data in local var
+
+			// MSFSConnection::sim_data.altitude = pS->altitude;
+
 			break;
 		}
 		break;
@@ -49,6 +53,14 @@ MSFSConnection::MSFSConnection()
 	HANDLE m_sim = NULL;
 
 	m_state = OFF;
+	sim_data = {
+		0.,
+		0,
+		0,
+		0
+	};
+
+	temp_count = 0;
 }
 
 void MSFSConnection::init_connection()
@@ -73,9 +85,6 @@ void MSFSConnection::init_connection()
 	// DATA
 	init_data();
 
-	// EVERY SECOND REQUEST DATA FOR DEFINITION 1 ON THE CURRENT USER AIRCRAFT (SIMCONNECT_OBJECT_ID_USER)
-	hr = SimConnect_RequestDataOnSimObject(m_sim, REQUEST_1, DEFINITION_1, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND);
-
 	//
 	m_state = INIT;
 
@@ -83,25 +92,11 @@ void MSFSConnection::init_connection()
 
 void MSFSConnection::tick()
 {
-	int EVENT_THROTTLE_FULL = 0;
-	int GROUP_A = 0;
-
-	HRESULT hr;
-
-	hr = SimConnect_MapClientEventToSimEvent(m_sim, EVENT_THROTTLE_FULL, "THROTTLE_FULL");
-	hr = SimConnect_AddClientEventToNotificationGroup(m_sim, GROUP_A, EVENT_THROTTLE_FULL);
-	hr = SimConnect_SetNotificationGroupPriority(m_sim, GROUP_A, SIMCONNECT_GROUP_PRIORITY_HIGHEST);
-	
-	SimConnect_TransmitClientEvent(m_sim, 0, EVENT_THROTTLE_FULL, 0, SIMCONNECT_GROUP_PRIORITY_HIGHEST, SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY);
-
-	// 
-	// SimConnect_CallDispatch(m_sim, MyDispatchProc1, NULL);
+	//
+	read_from_sim();
 
 	//
-	// read_data();
-
-	//
-	// send_data();
+	send_to_sim();
 
 }
 
@@ -113,13 +108,22 @@ void MSFSConnection::stop()
 
 void MSFSConnection::init_data()
 {
-	// Fonction to initialize all data to be read
+	// Fonction to initialize all data to be readn and all actions to be transmitted to the sim
 	HRESULT hr;
 
+	// Data to read
 	hr = SimConnect_AddToDataDefinition(m_sim, DEFINITION_1, "Indicated Altitude", "feet");
 	hr = SimConnect_AddToDataDefinition(m_sim, DEFINITION_1, "HEADING INDICATOR", "degrees", SIMCONNECT_DATATYPE_INT32);
 	hr = SimConnect_AddToDataDefinition(m_sim, DEFINITION_1, "Airspeed Indicated", "knots", SIMCONNECT_DATATYPE_INT32);
 	hr = SimConnect_AddToDataDefinition(m_sim, DEFINITION_1, "VERTICAL SPEED", "Feet per second", SIMCONNECT_DATATYPE_INT32);
+
+
+	// EVERY SECOND REQUEST DATA FOR DEFINITION 1 ON THE CURRENT USER AIRCRAFT (SIMCONNECT_OBJECT_ID_USER)
+	hr = SimConnect_RequestDataOnSimObject(m_sim, REQUEST_1, DEFINITION_1, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND);
+
+	// Actions to send
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, SPOILERS_TOGGLE, "SPOILERS_TOGGLE");
+
 }
 
 health MSFSConnection::get_state()
@@ -127,9 +131,13 @@ health MSFSConnection::get_state()
 	return m_state;
 }
 
-void MSFSConnection::read_data()
+void MSFSConnection::read_from_sim()
 {
+	// Read data from the simulation
 	m_state = ON;
+
+	// Read
+	SimConnect_CallDispatch(m_sim, MyDispatchProc1, NULL);
 
 	if (false)
 	{
@@ -137,9 +145,22 @@ void MSFSConnection::read_data()
 	}
 }
 
-void MSFSConnection::send_data()
+void MSFSConnection::send_to_sim()
 {
 	// Send data to simulation
+
+	if (temp_count < 200)
+	{
+		temp_count += 1;
+	}
+	else
+	{
+		temp_count = 0;
+		printf("Toggle SPOILER\n");
+		TxAction(SPOILERS_TOGGLE);
+		// SimConnect_TransmitClientEvent(m_sim, 0, SPOILERS_TOGGLE, 0, SIMCONNECT_GROUP_PRIORITY_HIGHEST, SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY);
+	}
+	
 }
 
 void MSFSConnection::pass_action()

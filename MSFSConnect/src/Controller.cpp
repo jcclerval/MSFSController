@@ -28,7 +28,7 @@ void Controller::run()
 	{
 		sim_connect.tick();
 		pic_connect.tick();
-		Sleep(100);
+		Sleep(1);
 
 		check_health();
 	}

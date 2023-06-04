@@ -1,7 +1,8 @@
 // Controller.h : Include file for standard system include files,
 // or project specific include files.
 
-#pragma once
+#ifndef CONTROLLER_H
+#define CONTROLLER_H
 
 #include "MSFSConnection.h"
 #include "PicoConnection.h"
@@ -30,3 +31,5 @@ private:
 };
 
 //
+
+#endif /* ! CONTROLLER_H */
