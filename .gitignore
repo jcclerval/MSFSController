@@ -3,6 +3,10 @@
 MSFSConnect/.vs
 MSFSConnect/out
 
+# PlatformIO
+PicoConnect/.pio
+PicoConnect/.vscode
+
 
 # Prerequisites
 *.d
