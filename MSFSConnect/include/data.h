@@ -4,6 +4,7 @@
 #ifndef DATA_H
 #define DATA_H
 
+#include <stdint.h>
 
 // Data to Read
 
@@ -28,6 +29,19 @@ struct SimResponse {
 
 
 // Actions to send
+
+// Actions
+
+struct SimCommand {
+	bool inc_flaps;
+	bool dec_flaps;
+	bool toggle_spoilers;
+
+	bool toggle_ap;
+	bool ap_off;
+	bool ap_on;
+	bool ap_speed;
+};
 
 // Macro to send events
 #define TxAction(action) SimConnect_TransmitClientEvent(m_sim, 0, action, 0, SIMCONNECT_GROUP_PRIORITY_HIGHEST, SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY)

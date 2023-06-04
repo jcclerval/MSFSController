@@ -28,8 +28,7 @@ void CALLBACK MyDispatchProc1(SIMCONNECT_RECV* pData, DWORD cbData, void* pConte
 				<< std::flush;
 
 			// Copy data in local var
-
-			// MSFSConnection::sim_data.altitude = pS->altitude;
+			MSFSConnection::sim_out = *pS;
 
 			break;
 		}
@@ -47,20 +46,19 @@ void CALLBACK MyDispatchProc1(SIMCONNECT_RECV* pData, DWORD cbData, void* pConte
 	}
 }
 
+// Init sim_data
+SimResponse MSFSConnection::sim_out = {
+	0.,
+	0,
+	0,
+	0
+	};
 
 MSFSConnection::MSFSConnection()
 {
 	HANDLE m_sim = NULL;
 
 	m_state = OFF;
-	sim_data = {
-		0.,
-		0,
-		0,
-		0
-	};
-
-	temp_count = 0;
 }
 
 void MSFSConnection::init_connection()
@@ -92,11 +90,17 @@ void MSFSConnection::init_connection()
 
 void MSFSConnection::tick()
 {
-	//
-	read_from_sim();
+	m_state = ON;
 
-	//
-	send_to_sim();
+	// Read data from the simulation
+	SimConnect_CallDispatch(m_sim, MyDispatchProc1, NULL);
+
+	if (false)
+	{
+		m_state = FAIL;
+	}
+
+	// Update struct sim_out
 
 }
 
@@ -122,7 +126,14 @@ void MSFSConnection::init_data()
 	hr = SimConnect_RequestDataOnSimObject(m_sim, REQUEST_1, DEFINITION_1, SIMCONNECT_OBJECT_ID_USER, SIMCONNECT_PERIOD_SECOND);
 
 	// Actions to send
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, FLAPS_DECR, "FLAPS_DECR");
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, FLAPS_INCR, "FLAPS_INCR");
 	hr = SimConnect_MapClientEventToSimEvent(m_sim, SPOILERS_TOGGLE, "SPOILERS_TOGGLE");
+
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, AP_MASTER, "AP_MASTER");
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, AUTOPILOT_OFF, "AUTOPILOT_OFF");
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, AUTOPILOT_ON, "AUTOPILOT_ON");
+	hr = SimConnect_MapClientEventToSimEvent(m_sim, AP_AIRSPEED_HOLD, "AP_AIRSPEED_HOLD");
 
 }
 
@@ -131,44 +142,33 @@ health MSFSConnection::get_state()
 	return m_state;
 }
 
-void MSFSConnection::read_from_sim()
-{
-	// Read data from the simulation
-	m_state = ON;
 
-	// Read
-	SimConnect_CallDispatch(m_sim, MyDispatchProc1, NULL);
-
-	if (false)
-	{
-		m_state = FAIL;
-	}
-}
-
-void MSFSConnection::send_to_sim()
-{
-	// Send data to simulation
-
-	if (temp_count < 200)
-	{
-		temp_count += 1;
-	}
-	else
-	{
-		temp_count = 0;
-		printf("Toggle SPOILER\n");
-		TxAction(SPOILERS_TOGGLE);
-		// SimConnect_TransmitClientEvent(m_sim, 0, SPOILERS_TOGGLE, 0, SIMCONNECT_GROUP_PRIORITY_HIGHEST, SIMCONNECT_EVENT_FLAG_GROUPID_IS_PRIORITY);
-	}
-	
-}
-
-void MSFSConnection::pass_action()
+void MSFSConnection::process(SimCommand input_action)
 {
 	// Pass actions to the simulation
+
+	// Decrease FLAPS
+	if (input_action.dec_flaps)
+	{
+		printf("FLAPS DECREASE\n");
+		TxAction(FLAPS_DECR);
+	}
+	// Increase FLAPS
+	if (input_action.inc_flaps)
+	{
+		printf("FLAPS INCREASE\n");
+		TxAction(FLAPS_INCR);
+	}
+	// Toggle spoilers
+	if (input_action.toggle_spoilers)
+	{
+		TxAction(SPOILERS_TOGGLE);
+	}
+	// Toggle AP
+	if (input_action.toggle_ap)
+	{
+		TxAction(AP_MASTER);
+	}
+
 }
 
-void MSFSConnection::pass_data()
-{
-	// Send data to the Pico
-}

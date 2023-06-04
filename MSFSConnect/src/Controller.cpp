@@ -26,7 +26,9 @@ void Controller::run()
 {
 	while (m_stop != true )
 	{
+		sim_connect.process(PicoConnection::sim_in);
 		sim_connect.tick();
+		pic_connect.process(MSFSConnection::sim_out);
 		pic_connect.tick();
 		Sleep(1);
 

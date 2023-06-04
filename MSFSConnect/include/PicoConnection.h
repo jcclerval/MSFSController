@@ -5,6 +5,7 @@
 #define PICO_CONNECT_H
 
 #include "common.h"
+#include "data.h"
 
 class PicoConnection
 {
@@ -15,12 +16,15 @@ public:
 	void tick(void);
 	void stop(void);
 
-	void pass_data(void);
-	void pass_action(void);
+	void process(SimResponse);
 
 	health get_state(void);
+	static SimCommand sim_in;
 
 private:
+
+	void reset_sim_in(void);
+
 	health m_state;
 
 	// TEMP //

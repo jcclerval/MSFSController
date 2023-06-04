@@ -2,6 +2,17 @@
 
 #include "PicoConnection.h"
 
+SimCommand PicoConnection::sim_in = {
+	false,
+	false,
+	false,
+
+	false,
+	false,
+	false,
+	false,
+};
+
 PicoConnection::PicoConnection()
 {
 	m_state = OFF;
@@ -18,11 +29,34 @@ void PicoConnection::init_connection()
 void PicoConnection::tick()
 {
 	m_state = ON;
+	reset_sim_in();
 
-	if (m_count > 1000)
+	m_count += 1;
+
+	if (m_count == 200)
 	{
+		sim_in.inc_flaps = true;
+	}
+	else if (m_count == 400)
+	{
+		sim_in.inc_flaps = true;
+	}
+	else if (m_count == 600)
+	{
+		sim_in.inc_flaps = true;
+	}
+	else if (m_count == 800)
+	{
+		sim_in.dec_flaps = true;
+	}
+	else if (m_count == 1000)
+	{
+		sim_in.dec_flaps = true;
+	}
+	else if (m_count == 1200)
+	{
+		sim_in.dec_flaps = true;
 		m_count = 0;
-		// Do something
 	}
 }
 
@@ -37,12 +71,21 @@ health PicoConnection::get_state()
 	return m_state;
 }
 
-void PicoConnection::pass_data()
+void PicoConnection::process(SimResponse out_data)
 {
 	// Get data from simulation, to send to Pico
 }
 
-void PicoConnection::pass_action()
+void PicoConnection::reset_sim_in()
 {
-	// Send actions from Pico for simulation
+	sim_in = {
+	false,
+	false,
+	false,
+
+	false,
+	false,
+	false,
+	false,
+	};
 }

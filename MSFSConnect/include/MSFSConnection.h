@@ -20,20 +20,15 @@ public:
 	void stop(void);
 	health get_state(void);
 
-	void pass_action(void);
-	void pass_data(void);
+	void process(SimCommand);
 	
 	HANDLE m_sim;
-	SimResponse sim_data;
+	static SimResponse sim_out;
 
 private:
 	void init_data(void);
-	void read_from_sim(void);
-	void send_to_sim(void);
 
 	health m_state;
-	
-	int temp_count;
 
 };
 
